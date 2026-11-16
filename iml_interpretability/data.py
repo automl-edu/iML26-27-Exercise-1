@@ -60,3 +60,54 @@ def load_titanic(data_home: str | Path = DATA_HOME) -> Dataset:
     X = pd.get_dummies(X, drop_first=True, dtype=float)
 
     return Dataset(name="titanic", X=X, y=y)
+
+
+def load_diabetes(data_home: str | Path = DATA_HOME) -> Dataset:
+    """Load the Indians Diabetes dataset from OpenML (data id 37).
+
+    The download is cached in ``data_home``, so network access is only needed on the first call.
+
+    :param data_home: Cache directory for the download, relative paths are resolved against the
+        current working directory.
+    :return: The preprocessed Titanic dataset.
+    :rtype: Dataset
+    """
+    bunch = fetch_openml("diabetes", version=1, as_frame=True, parser="liac-arff", data_home=data_home)
+    X = bunch.data
+    y = bunch.target.map({"tested_negative": 0, "tested_positive": 1}).astype(int).rename("diabetes")
+
+    return Dataset(name="diabetes", X=X, y=y)
+
+
+def load_wdbc(data_home: str | Path = DATA_HOME) -> Dataset:
+    """Load the Breast Cancer Wisconsin dataset from OpenML (data id 1510).
+
+    The download is cached in ``data_home``, so network access is only needed on the first call.
+
+    :param data_home: Cache directory for the download, relative paths are resolved against the
+        current working directory.
+    :return: The preprocessed Titanic dataset.
+    :rtype: Dataset
+    """
+    bunch = fetch_openml("wdbc", version=1, as_frame=True, parser="liac-arff", data_home=data_home)
+    X = bunch.data
+    y = bunch.target.map({"1": 0, "2": 1}).astype(int).rename("malignant")  # malignant = harmful
+
+    return Dataset(name="wdbc", X=X, y=y)
+
+
+def load_endgames(data_home: str | Path = DATA_HOME) -> Dataset:
+    """Load the King-Rook vs King-Pawn dataset from OpenML (data id 3).
+
+    The download is cached in ``data_home``, so network access is only needed on the first call.
+
+    :param data_home: Cache directory for the download, relative paths are resolved against the
+        current working directory.
+    :return: The preprocessed Titanic dataset.
+    :rtype: Dataset
+    """
+    bunch = fetch_openml("kr-vs-kp", version=1, as_frame=True, data_home=data_home)
+    X = pd.get_dummies(bunch.data, drop_first=True, dtype=float)
+    y = bunch.target.map({"nowin": 0, "won": 1}).astype(int).rename("won")
+
+    return Dataset(name="kr-vs-kp", X=X, y=y)

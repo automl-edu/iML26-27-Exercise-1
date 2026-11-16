@@ -1,0 +1,10 @@
+{
+  "depth": 0.31,
+  "log2_n_leaves": 1.35,
+  "log2_feature_reuse": 0.6,
+  "max_features_on_path": 0.36,
+  "essential_split_share": 3.84,
+  "log2_n_trees": 0.97,
+  "log2_effective_n_trees": 1.35,
+  "threshold": 11.13
+}

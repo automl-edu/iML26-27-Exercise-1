@@ -21,6 +21,8 @@ interpretability*: at what point does a model stop being interpretable?
 - You may use an LLM-based metric. In that case you have to provide evidence that its scores
   agree with human judgments.
 
+#### We only did task 1 this week. I wasn't sure what to write in the README, as everything is pretty much explained in the presentation.pdf 😃
+
 ### Task 2 (2 bonus points): Meta-features and interpretability
 
 Find connections between a dataset's meta-features (e.g. number of samples, number of features,
@@ -42,57 +44,67 @@ uv run pytest
 uv run python scripts/run_experiment.py
 ```
 
-With plain pip:
-
+I updated the weights in my metric to the weights of the Logistic-Regression model.
+If you want to rerun the fitting do:
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+uv run python scripts/run_fit.py
 ```
 
-The first run downloads the Titanic dataset from OpenML and caches it in `data/` (relative to the
-directory you run from). You may use that dataset, but dont you want to rather look at something existing?
+This fits a tree for all labeled trees in [`labels.csv`](labeling/labels.csv).
+In case you want to label additional trees add them to [`items.csv`](labeling/items.csv)
+or write a custom tree-sampler. 
+I used the AI generated tree-sampler ([`make_labeling_set.py`](labeling/make_labeling_set.py)).
+
+To run my version of the tree-sampler (that generated the file  [`items.csv`](labeling/items.csv)), run:
+```bash
+uv run python scripts/make_labeling_set.py
+```
+
+To use the html interface for labeling run: 
+```bash
+open labeling/label_trees.html
+```
+and export the results to [`labels.csv`](labeling/labels.csv).
+
+
 
 ## Repository structure
 
 ```
 iml_interpretability/
-├── data.py        # Dataset container + load_titanic(); add your own datasets here
-├── models.py      # get_models(): the models you compare (example: one decision tree)
-├── metric.py      # InterpretabilityMetric base class + RelativeNumberOfLeaves (example)
+├── data.py        # Dataset container + load_titanic(), load_diabetes(), load_wdbc(), load_endgames()
+├── models.py      # get_models(): the models you compare (decision tree, random forest, gradient boost)
+├── metric.py      # InterpretabilityMetric base class + StructuralInterpretability
+├── tree.py        # Node + tree helpers: trees_of, simplify, essential_split_share, effective_n_trees
 └── evaluate.py    # evaluate(): fits all models on all datasets and computes all metrics
 scripts/
-└── run_experiment.py   # runs evaluate() and writes results/scores.csv
+├── run_experiment.py   # runs evaluate() and writes results/scores.csv
+└── run_fit.py          # fits a logistic regression on labeling/labels.csv, writes labeling/fitted_weights.json
+labeling/
+├── make_labeling_set.py      # samples models, renders the trees, writes items.csv + label_trees.html
+├── label_page_template.html  # HTML/JS template for the labeling page
+├── label_trees.html          # generated labeling page (open in a browser, export labels.csv)
+├── items.csv                 # the 100 sampled models with their features
+├── labels.csv                # my hand labels (interpretable yes/no)
+└── fitted_weights.json       # threshold + weights from run_fit.py
+
 tests/                  # pytest tests
-presentation/           # put presentation.pdf here
+presentation/           # presentation.pdf here
 ```
 
-The repository runs end to end on a minimal example: a single scikit-learn decision tree on
-Titanic, scored by its number of leaves relative to the maximum possible for its depth (`RelativeNumberOfLeaves` in
-[`iml_interpretability/metric.py`](iml_interpretability/metric.py)). Replace this example with your
-own metric, models and datasets. You are free to restructure everything, as long as the package
-stays installable and your results stay reproducible from the scripts in this repository.
 
 ## Code style
 
-Please keep your code clean and consistent. We recommend [ruff](https://docs.astral.sh/ruff/) as
-linter and formatter. A configuration is already included in `pyproject.toml`:
+I used [ruff](https://docs.astral.sh/ruff/) as linter and formatter.
 
-## Submission
-
-- Submit your code and presentation by **Sunday, November 15th, 2026, 23:59**.
-- Your fork contains your code, the scripts that reproduce your results, and
-  `presentation/presentation.pdf`.
-- **Rewrite this README.** Replace the template text with a short description of your approach and
-  how to reproduce your results.
-- **Mandatory:** replace the [AI statement](#ai-statement) below with your own, stating how you
-  used AI tools (or that you did not use any).
 
 ## AI statement
-
-> **Mandatory.** Replace this example with your own: which AI tools you used, for what, and how you
-> checked their output (or that you used none).
-
-*Example:* I created this repository with Claude Code (Claude Opus 5.5). After clarifying the scope
-with it, it generated the code, tests and README based on my own projects as style references. I
-reviewed and edited the result and checked that it runs. I take full responsibility for and
-ownership of the content of this repository.
+I used Claude Desktop for:
+- Brainstroming on what features to use and discussed that. 
+- Writing tests (I clarified the scope and let it automatically generate tests (95% of them were super useful)).
+- Building the web-interface for the labeling process. I feel like this is what LLMs are very good at (building simple interfaces very fast).
+  - I didnt verify the code at all, but did "Stichproben" on the output file (that is used as the basis for the training of the LM).
+  - So everything under "labeling" is ai generated.
+  - The idea of AI generating the candidate set as well was, that I am the only grader, so if I would generate the candidates AND grade them, that might introduce a higher bias then splitting the tasks. 
+- Creating and "beatifying" graphs 
+  - for the graphs i didnt double check what the ai did, but i didnt use them for anything. It was just to get an intuition of what the metric does (probably)
